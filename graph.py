@@ -1,35 +1,43 @@
+"""Compiled LangGraph topology for the thumbnail reflexion agent."""
+
 from langgraph.graph import END, START, StateGraph
 
 from nodes import (
-    node_critic,
-    node_generator,
-    node_prompt_writer,
-    node_saver,
-    node_design_strategy,
-    node_should_continue,
-    node_web_search,
+    collect_thumbnail_research,
+    generate_thumbnail_image,
+    record_loop_decision,
+    review_thumbnail_image,
+    save_best_thumbnail,
     should_continue,
+    write_image_prompt,
 )
 from state import ThumbnailState
 
 
 def build_graph():
+    """Build and compile the required LangGraph state machine.
+
+    Flow:
+        START -> web_search -> prompt_writer -> generator -> critic
+        -> should_continue -> prompt_writer or saver -> END
+    """
     graph = StateGraph(ThumbnailState)
 
-    graph.add_node("web_search", node_web_search)
-    graph.add_node("design_strategy", node_design_strategy)
-    graph.add_node("prompt_writer", node_prompt_writer)
-    graph.add_node("generator", node_generator)
-    graph.add_node("critic", node_critic)
-    graph.add_node("should_continue", node_should_continue)
-    graph.add_node("saver", node_saver)
+    # Strategy is intentionally omitted; should_continue is a visible router node.
+    graph.add_node("web_search", collect_thumbnail_research)
+    graph.add_node("prompt_writer", write_image_prompt)
+    graph.add_node("generator", generate_thumbnail_image)
+    graph.add_node("critic", review_thumbnail_image)
+    graph.add_node("should_continue", record_loop_decision)
+    graph.add_node("saver", save_best_thumbnail)
 
     graph.add_edge(START, "web_search")
-    graph.add_edge("web_search", "design_strategy")
-    graph.add_edge("design_strategy", "prompt_writer")
+    graph.add_edge("web_search", "prompt_writer")
     graph.add_edge("prompt_writer", "generator")
     graph.add_edge("generator", "critic")
     graph.add_edge("critic", "should_continue")
+
+    # The loop remains inside the compiled graph through this conditional edge.
     graph.add_conditional_edges(
         "should_continue",
         should_continue,

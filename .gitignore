@@ -12,10 +12,4 @@ wheels/
 # Local secrets
 .env
 
-# Generated assignment outputs
-outputs/
-graph.png
-graph.mmd
 
-# Local reference clones used during development
-.codex_refs/
