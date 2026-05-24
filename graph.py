@@ -23,7 +23,7 @@ def build_graph():
     """
     graph = StateGraph(ThumbnailState)
 
-    # Strategy is intentionally omitted; should_continue is a visible router node.
+
     graph.add_node("web_search", collect_thumbnail_research)
     graph.add_node("prompt_writer", write_image_prompt)
     graph.add_node("generator", generate_thumbnail_image)
